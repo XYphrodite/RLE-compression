@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -121,14 +122,13 @@ namespace Crypt2
                 {
                     compressedFile = reader.ReadToEnd();
                 }
-                for (int x = 0; x < 100; x++)
-                    for (int y = 0; y < 100; y++)
-                        if (fileContent[x * 100 + y] != '1' && fileContent[x * 100 + y] != '0')
-                        {
-                            MessageBox.Show("Обнаружен символ отличный от 0 и 1", "Ошибка",
-                                MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
+                for (int x = 0; x < compressedFile.Length; x++)
+                    if (compressedFile[x] != '1' && compressedFile[x] != '0')
+                    {
+                        MessageBox.Show("Обнаружен символ отличный от 0 и 1", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
                 string decompressFile = decompresseFile(compressedFile);
                 File.WriteAllText("3.txt", decompressFile);
             }
@@ -142,12 +142,24 @@ namespace Crypt2
 
         private string decompresseFile(string file)
         {
-            string toReturn = string.Empty;
+            var toReturn = new StringBuilder();
             int numberOfMatches = 0;
-            //decompress algorithm
-
+            for(int i=0;i< file.Length / 16; i++)
+            {
+                //string с = file.Substring(i * 16, 2);
+                string counter = file.Substring(i * 16 + 2, 6);
+                string code = file.Substring(i * 16 + 8, 8);
+                byte b = (byte)(byte.Parse(counter)+1);
+                var sb = new StringBuilder();
+                for(byte j = 0; j < b; j++)
+                {
+                    sb.Append(code);
+                }
+                toReturn.Append(sb.ToString());
+                numberOfMatches += (b - 1);
+            }
             MessageBox.Show($"Количество совпадений = {numberOfMatches}");
-            return toReturn;
+            return toReturn.ToString();
         }
     }
 }
