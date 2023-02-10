@@ -1,7 +1,4 @@
-using System.Drawing;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace Crypt2
 {
@@ -64,11 +61,11 @@ namespace Crypt2
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string compressedFile = compresseFile();
+            string compressedFile = compresseFile1();
             File.WriteAllText("2.txt", compressedFile);
         }
 
-        private string compresseFile()
+        private string compresseFile1()
         {
             string toReturn = "";
             int numberOfMatches = 0;
@@ -84,7 +81,6 @@ namespace Crypt2
                     {
                         i += 1;
                         amount++;
-                        
                     }
                     else
                     {
@@ -92,17 +88,64 @@ namespace Crypt2
                         break;
                     }
                 }
-                string binary = SetZeroes(Convert.ToString(amount, 2));
+                string binary = SetZeroes(Convert.ToString(amount, 2),6);
                 toReturn += binary;
                 toReturn += toCode;
             }
             MessageBox.Show($"Количество совпадений = {numberOfMatches}");
             return toReturn;
         }
-        private string SetZeroes(string value)
+        //не работает
+        private string compresseFile2()
+        {
+            string toReturn = "";
+            int numberOfMatches = 0;
+            int allNotCompressed = 0;
+            for (int i = 0; i < 10000 / 8; i++)
+            {
+                int amount = 0;
+                string fByte = fileContent.Substring(i * 8, 8);
+                while (amount < 127 && i + 2 < 10000 / 8)
+                {
+                    string nextByte = fileContent.Substring((i + 1) * 8, 8);
+                    if (fByte == nextByte)
+                    {
+                        while (fByte == nextByte && amount < 127 && i + 2 < 10000 / 8)
+                        {
+                            amount++;
+                            i++;
+                            nextByte = fileContent.Substring((i + 1) * 8, 8);
+                        }
+                        numberOfMatches += amount;
+                        toReturn += "1" + SetZeroes(Convert.ToString(amount, 2), 7) + fByte;
+                    }
+                    else
+                    {
+                        string notCompressed = fByte;
+                        while (fByte != nextByte && amount < 127 && i + 2 < 10000 / 8)
+                        {
+                            nextByte = fileContent.Substring((i + 1) * 8, 8);
+                            fByte = nextByte;
+                            amount++;
+                            i++;
+                            notCompressed += nextByte;
+                            
+                        }
+                        allNotCompressed += notCompressed.Length;
+                        toReturn += "0" + SetZeroes(Convert.ToString(amount, 2), 7) + notCompressed;
+                    }
+                    i--;
+                    break;
+                }
+            }
+            MessageBox.Show($"Количество несжатых = {allNotCompressed}");
+            MessageBox.Show($"Количество совпадений = {numberOfMatches}");
+            return toReturn;
+        }
+        private string SetZeroes(string value, int amount)
         {
             string newStr = "";
-            for (int i = 0; i < 6 - value.Length; i++)
+            for (int i = 0; i < amount - value.Length; i++)
             {
                 newStr += "0";
             }
@@ -129,7 +172,7 @@ namespace Crypt2
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
-                string decompressFile = decompresseFile(compressedFile);
+                string decompressFile = decompresseFile1(compressedFile);
                 File.WriteAllText("3.txt", decompressFile);
             }
             else
@@ -140,7 +183,7 @@ namespace Crypt2
             }
         }
 
-        private string decompresseFile(string file)
+        private string decompresseFile1(string file)
         {
             var toReturn = new StringBuilder();
             int numberOfMatches = 0;
@@ -159,6 +202,50 @@ namespace Crypt2
                 numberOfMatches += (b - 1);
             }
             MessageBox.Show($"Количество совпадений = {numberOfMatches}");
+            return toReturn.ToString();
+        }
+        private string decompresseFile2(string file)
+        {
+            var toReturn = new StringBuilder();
+            int numberOfMatches = 0;
+            int allBytes = 0;
+            int noSame = 0;
+            int theSame = 0;
+            for (int i = 0; i < file.Length / 8 -1;)
+            {
+                string с = file.Substring(i * 8, 1);
+                string counter = file.Substring(i * 8 + 1, 7);
+                byte b = (byte)(Convert.ToByte(counter,2)+1);
+                allBytes += b;
+                i++;
+                if (с == "0")
+                {
+                    string toAdd = string.Empty;
+                    for (byte j = 0; j < b && i<file.Length/8; j++,i++)
+                    {
+                        toAdd += file.Substring((i) * 8, 8);
+                        
+                    }
+                    noSame+=toAdd.Length;
+                    //MessageBox.Show($"Количество байт = {toAdd.Length/8} = {b}");
+                    toReturn.Append(toAdd);
+                }
+                else
+                {
+                    string toAdd = string.Empty;
+                    for (byte j = 0; j < b; j++)
+                    {
+                        toAdd += file.Substring((i) * 8, 8);
+                    }
+                    toReturn.Append(toAdd);
+                    //MessageBox.Show($"Количество байт = {toAdd.Length / 8} = {b}");
+                    numberOfMatches += (b - 1);
+                    theSame+=toAdd.Length;
+                    i++;
+                }
+            }
+            MessageBox.Show($"NoSame = {noSame}\nTheSame = {theSame}");
+            MessageBox.Show($"Количество совпадений = {numberOfMatches}\nКоличество байт = {allBytes}");
             return toReturn.ToString();
         }
     }
