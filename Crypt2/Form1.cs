@@ -93,7 +93,7 @@ namespace Crypt2
                 toReturn += toCode;
             }
             var s = ((float)fileContent.Length / (float)toReturn.Length * 100).ToString();
-            MessageBox.Show($"Степеь сжатия = {s}%");
+            MessageBox.Show($"Степень сжатия = {s}%");
             MessageBox.Show($"Количество совпадений = {numberOfMatches}");
             return toReturn;
         }
