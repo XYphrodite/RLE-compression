@@ -47,9 +47,9 @@ namespace Crypt2
                 for (int y = 0; y < 100; y++)
                 {
                     if (fileContent[x * 100 + y] == '1')
-                        bitmap.SetPixel(x, y, Color.Black);
+                        bitmap.SetPixel(y, x, Color.Black);
                     else if (fileContent[x * 100 + y] == '0')
-                        bitmap.SetPixel(x, y, Color.White);
+                        bitmap.SetPixel(y, x, Color.White);
                     else
                         MessageBox.Show("Обнаружен символ отличный от 0 и 1", "Ошибка",
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -74,7 +74,7 @@ namespace Crypt2
                 toReturn += "11";
                 int amount = 0;
                 string toCode = fileContent.Substring(i * 8, 8);
-                while (amount <= 63 && i+1 < 10000 / 8)
+                while (amount < 63 && i+1 < 10000 / 8)
                 {
                     string nextCode = fileContent.Substring((i + 1) * 8, 8);
                     if (toCode == nextCode)
@@ -92,6 +92,8 @@ namespace Crypt2
                 toReturn += binary;
                 toReturn += toCode;
             }
+            var s = ((float)fileContent.Length / (float)toReturn.Length * 100).ToString();
+            MessageBox.Show($"Степеь сжатия = {s}%");
             MessageBox.Show($"Количество совпадений = {numberOfMatches}");
             return toReturn;
         }
@@ -192,7 +194,7 @@ namespace Crypt2
                 //string с = file.Substring(i * 16, 2);
                 string counter = file.Substring(i * 16 + 2, 6);
                 string code = file.Substring(i * 16 + 8, 8);
-                byte b = (byte)(byte.Parse(counter)+1);
+                var b = (byte)(Convert.ToInt32(counter, 2)+1);
                 var sb = new StringBuilder();
                 for(byte j = 0; j < b; j++)
                 {
